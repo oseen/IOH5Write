@@ -1,9 +1,7 @@
 IOH5Write_b_OFv6
 ===============
 
-This branch is based on a fork from https://github.com/hakostra/IOH5Write. The library of this branch 'IOH5Write_b_OFv6' has now the possibility to include patches and/or boundary data to be written to a hdf5 archive (beside the usual possibility to write internalField and kinematic cloud data to hdf5). It works with newer OpenFOAM versions. I was adapted for and tested with OpenFOAM-6.
-
-Note: The option to write cloud particle data to hdf5 archive is disabled at the moment since the file ``h5WriteCloud.C`` still needs to be adapted to newer OpenFOAM versions (OpenFOAM-6).
+This branch is based on a fork from https://github.com/hakostra/IOH5Write. The library of this branch 'IOH5Write_b_OFv6' has now the possibility to include patches and/or boundary data to be written to a hdf5 archive (beside the usual possibility to write internalField and kinematic cloud data to hdf5). It works with newer OpenFOAM versions. I was adapted for and tested with OpenFOAM-6. 
 
 The functionObject library writes OpenFOAM cases as HDF5 archives instead of the default (uncollated I/O) one-file-per-process-per-timestep-per-variable approach. This saves a lot of files, makes it easier to manage, copy, and post-process the results. An XDMF file is used to describe the contents of the HDF5-file and this can easily be opened in ParaView, VisIt or any other common postprocessor tool. The I/O part is handled by MPI-IO, which makes it effective on clusters and high-performance computers with thousands of cores and parallel file systems. By writing to the hdf5 archive, no reconstruction process (reconstructPar) is necessary to reconstruct the fields and the mesh. This can save a lot of time when it is inevitable to reconstruct numerous time steps. Furthermore, the hdf5 archives need less disk space in comparison to OpenFOAM's uncollated and collated output. The library is compatible with the new collated file format of OpenFOAM.
 
@@ -72,7 +70,8 @@ There are a few known bugs and limitations:
 3. With the branch 'IOH5Write_b_OFv6' it is possible to additionally write patch or boundary data to the hdf5 archive. Up to now this is only possible for quadrilateral faces. In general, it is not possible to write out boundary data for boundaries having the boundary condition "empty".
 4. Like in the base work from https://github.com/hakostra/IOH5Write, the library is able to write scalar and vector fields to the hdf5 archive. Up to now, the implementation for tensor fields is still missing.
 5. Like in the base work from https://github.com/hakostra/IOH5Write, the code has no clean simulation ending.
-6. The code is not very well structured, and does not utilize many of the object-oriented features C++ gives. This is partly because the HDF5 library is a pure C library, requiring you to deal with pointers to arrays and stuff, partly due to my lack of C++ skills. 
+6. The code is not very well structured, and does not utilize many of the object-oriented features C++ gives. This is partly because the HDF5 library is a pure C library, requiring you to deal with pointers to arrays and stuff, partly due to my lack of C++ skills.
+7. The option to write the particle attribute 'Us' (slip velocity) to a hdf5 archive is commented out at the moment since the relevant part in the file ``h5WriteCloud.C`` still needs to be adapted to newer OpenFOAM versions (OpenFOAM-6).
 
 
 Found yet another bug? Got suggestions for improvements?
