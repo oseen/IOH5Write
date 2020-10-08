@@ -55,7 +55,7 @@ The XDMF files is written *after* the simulation is finished by using the python
 
 Testing
 -------
-Test the code by running the inluded cavity or pitzdaily tutorial with the attached ``Allrun`` script. A directory called ``h5Data`` should be created, in which the file ``h5Data0.h5`` is created. To use the code on other cases, look in the ``controlDict`` file in this case.
+Test the code by running the inluded cavity or pitzdaily tutorial and by using ``./Allrun`` script. A directory called ``h5Data`` should be created, in which the file ``h5Data0.h5`` is created. To use the code on other cases, look in the ``controlDict`` file in this case.
 
 
 Compatibility
