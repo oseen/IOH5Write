@@ -13,7 +13,7 @@ __license__ = "GPL v3 or later"
 
 # Extended for patch fields
 __author2__ = "Flo Wachter"
-__email2__ = "wa@ipat.fau.de"
+__email2__ = "flo.wachter@fau.de"
 
 
 import h5py
