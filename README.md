@@ -45,17 +45,17 @@ Choosing between single and double precision IO
 -----------------------------------------------
 The solution of your problem (that is going to be written) is usually found by an iterative method, that gives an approximate answer. This approximation typically has 6-8 significant digits, far from the 15 significant digits in double precision. To save space (a lot actually) it is possible to write the solution data in single precision, independent on the precision settings in OpenFOAM.
 
-This choice of output precision is done at compile time, and the default is single precision (32 bit floating point numbers). To switch, you set either -DWRITE_SP (for single prec.) or -DWRITE_DP (for double prec.) in the ``Make/options`` file. 
+This choice of output precision is done at compile time, and the default is single precision (32 bit floating point numbers). To switch, you set either ``-DWRITE_SP`` (for single prec.) or ``-DWRITE_DP`` (for double prec.) in the ``Make/options`` file. 
 
 
 Writing XDMF files
 ------------------
-The XDMF files is written *after* the simulation is finished by using the python script 'writeXDMF_b_v2.py'. The script will, if not supplied with any additional arguments, parse the file 'h5Data/h5Data0.h5', and write the resulting XDMF files in a folder called 'xdmf_b'. Single XDMF-files will be created for the internalField/mesh data, and/or for patch/boundary data, and/or for each cloud of particles. Usage instructions can be given with the option --help.
+The XDMF files is written *after* the simulation is finished by using the python script ``writeXDMF_b_v2.py``. The script will, if not supplied with any additional arguments, parse the file ``h5Data/h5Data0.h5``, and write the resulting XDMF files in a folder called ``xdmf_b``. Single XDMF-files will be created for the internalField/mesh data, and/or for patch/boundary data, and/or for each cloud of particles. Usage instructions can be given with the option ``--help``.
 
 
 Testing
 -------
-Test the code by running the inluded cavity or pitzdaily tutorial with the attached ``Allrun`` script. A directory called h5Data should be created, in which the file h5Data0.h5 is created. To use the code on other cases, look in the ``controlDict`` file in this case.
+Test the code by running the inluded cavity or pitzdaily tutorial with the attached ``Allrun`` script. A directory called ``h5Data`` should be created, in which the file ``h5Data0.h5`` is created. To use the code on other cases, look in the ``controlDict`` file in this case.
 
 
 Compatibility
@@ -69,7 +69,7 @@ There are a few known bugs and limitations:
 
 1. The code only works in parallel. This is a consequence of the design of OpenFOAM, since ``MPI_Init`` is never called for serial runs, hence the parallel HDF5 library cannot use MPI-IO.
 2. The XDMF file must be written after the simulation. This is not a bug, but a slight limitation embedded in the design.
-3. With the branch ``IOH5Write_b_OFv6`` it is possible to additionally write patch or boundary data to the hdf5 archive. Up to now this is only possible for quadrilateral faces. In general, it is not possible to write out boundary data for boundaries having the boundary condition "empty".
+3. With the branch 'IOH5Write_b_OFv6' it is possible to additionally write patch or boundary data to the hdf5 archive. Up to now this is only possible for quadrilateral faces. In general, it is not possible to write out boundary data for boundaries having the boundary condition "empty".
 4. Like in the base work from https://github.com/hakostra/IOH5Write, the library is able to write scalar and vector fields to the hdf5 archive. Up to now, the implementation for tensor fields is still missing.
 5. Like in the base work from https://github.com/hakostra/IOH5Write, the code has no clean simulation ending.
 6. The code is not very well structured, and does not utilize many of the object-oriented features C++ gives. This is partly because the HDF5 library is a pure C library, requiring you to deal with pointers to arrays and stuff, partly due to my lack of C++ skills. 
