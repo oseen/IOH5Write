@@ -57,10 +57,13 @@ functions
         type                h5Write;
         
         // Where to load it from
-        functionObjectLibs  ( "libIOh5Write.so" );
+        functionObjectLibs  ( "libIOh5Write_b.so" );
         
         // Volume fields to write
         objectNames         ( U p );
+
+	patchNames          (movingWall fixedWalls);
+        //patchNames        (); // This will skip the writing of patches
         
         // Kinematic clouds to write (leave blank to skip)
         cloudNames          ( kinematicCloud );

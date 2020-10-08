@@ -37,6 +37,7 @@ namespace Foam
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
+
 Foam::h5Write::h5Write
 (
     const word& name,
@@ -49,11 +50,14 @@ Foam::h5Write::h5Write
     obr_(obr),
     mesh_(refCast<const fvMesh>(obr))
 {
+
+//    Info<< "\n ### Entering h5Write.C - Constructor ### \n" << endl;
+    
     // Read dictionary
     read(dict);
     
     
-    // Calssify fields
+    // Calssify fields store in nFields_
     nFields_ = classifyFields();
     
     
@@ -64,8 +68,9 @@ Foam::h5Write::h5Write
     // Only do if some fields are to be written
     if (nFields_)
     {
-        // Set length of cell numbers array
+        // Set length of cell numbers array of each proc
         nCells_.setSize(Pstream::nProcs());
+        nPatchCellsPerProc_.setSize(Pstream::nProcs());
         
         // Write mesh and initial conditions
         meshWrite();
@@ -92,6 +97,7 @@ void Foam::h5Write::read(const dictionary& dict)
     dict.lookup("cloudNames") >> cloudNames_;
     dict.lookup("cloudAttribs") >> cloudAttribs_;
     dict.lookup("writeInterval") >> writeInterval_;
+    dict.lookup("patchNames") >> patchNames_;
     
     // Lookup chunk size if present
     chunkSize_ = dict.lookupOrDefault<label>("chunkSize", 0);
@@ -104,11 +110,12 @@ void Foam::h5Write::read(const dictionary& dict)
     int writeprec = sizeof(ioScalar);
     Info<< type() << " " << name() << ":" << endl
         << "  Compiled with " << writeprec << " bytes precision." << endl
-        << "  writing every " << writeInterval_ << " iterations:"
+        << "  Writing every " << writeInterval_ << " iterations:"
         << endl
         << "   ";
     
     // Do a basic check to see if the objectNames_ is accessible
+    // print found objectNames_ (U, p, ...)
     forAll(objectNames_, i)
     {
         if (obr_.foundObject<regIOobject>(objectNames_[i]))
@@ -127,6 +134,31 @@ void Foam::h5Write::read(const dictionary& dict)
 
     }
     
+    // Do a basic check to see if patchNames_ is accessible
+    // print found patchNames_ (inlet, outlet ...)
+    Info<< "\n  Include patch/patches for writing: " 
+	    << endl
+	    << "   ";
+
+    forAll(patchNames_, i)
+    {
+//        if (obr_.foundObject<regIOobject>(patchNames_[i]))
+//        {
+            Info<< " " << patchNames_[i];
+//        }
+//        else
+//        {
+//            WarningIn
+//            (
+//                "Foam::writeRegisteredObject::read(const dictionary&)"
+//            )   << "Patch " << patchNames_[i] << " not found in "
+//                << endl;
+//        }
+
+    }
+    
+//    Info << endl;
+
     // Also print the cloud names
     forAll(cloudNames_, i)
     {
@@ -169,7 +201,8 @@ void Foam::h5Write::write()
     if ( timeSteps_ == nextWrite_ )
     {
         // Write info to terminal
-        Info<< "Writing HDF5 data for time " << obr_.time().timeName() << endl;
+        Info << "Writing HDF5 data for time " << obr_.time().timeName() << endl;
+        Info << endl;
         
         // Only write field data if fields are specified
         if (nFields_)
@@ -182,6 +215,8 @@ void Foam::h5Write::write()
             
             // Write field data
             fieldWrite();
+	    // Write patch data
+            patchWrite();
         }
         
         // Only write cloud data if any clouds is specified

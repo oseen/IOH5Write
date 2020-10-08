@@ -122,6 +122,10 @@ protected:
 
             //- Write interval (in number of iterations)
             label writeInterval_;
+
+            //- Names of patches to write
+            wordReList patchNames_;
+
         
         
         // Categorized scalar/vector/tensor fields
@@ -144,6 +148,9 @@ protected:
         
         // Array containing number of cells per process (often used list)
         List<label> nCells_;
+	// Array containing number of patch cells per process (often used list)
+        List<label> nPatchCells_; // nPatchCells_[patch] = number of patch-cells
+        List<List<label>> nPatchCellsPerProc_; // nPatchCells_[proc][patch] = number of patch-cells per processor
             
             
 
@@ -171,12 +178,15 @@ protected:
           
           // Field write wrapper
           void fieldWrite();
+          void patchWrite();
           
           // Write scalar data
           void fieldWriteScalar();
+          void patchWriteScalar();
           
           // Write vector data
           void fieldWriteVector();
+          void patchWriteVector();
       
       
       // Functions for handling particle cloud data
@@ -207,6 +217,8 @@ protected:
           // Write cells
           void meshWriteCells();
           
+          // Write faces of patches
+          void meshWritePatchFaces();
           
       // Miscallenous definitions
 

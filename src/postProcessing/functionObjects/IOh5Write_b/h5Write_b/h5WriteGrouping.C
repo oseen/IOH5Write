@@ -30,10 +30,15 @@ License
 
 Foam::label Foam::h5Write::appendFieldGroup
 (
+
+    
     const word& fieldName,
     const word& fieldType
 )
 {
+//    Info << "### Flo: append field group - h5WriteGrouping.C ###" << endl;
+
+    // ### Flo: if fieldtype is a volScalarField:typeName then append it to scalarFields_
     if (fieldType == volScalarField::typeName)
     {
         scalarFields_.append(fieldName);
@@ -44,6 +49,8 @@ Foam::label Foam::h5Write::appendFieldGroup
         vectorFields_.append(fieldName);
         return 1;
     }
+
+    // ### Flo: TensorFields not implemented ???
     else if (fieldType == volSphericalTensorField::typeName)
     {
         //sphericalTensorFields_.append(fieldName);
@@ -67,11 +74,14 @@ Foam::label Foam::h5Write::appendFieldGroup
 Foam::label Foam::h5Write::classifyFields()
 {
     label nFields = 0;
-    
+
+//    Info << "### Flo: Check currently available fields - h5WriteGrouping.C ###" << endl;
+
     // Check currently available fields
     wordList allFields = mesh_.sortedNames();
     labelList indices = findStrings(objectNames_, allFields);
 
+    // loopt through the labelList "indices" with iterator fieldI
     forAll(indices, fieldI)
     {
         const word& fieldName = allFields[indices[fieldI]];

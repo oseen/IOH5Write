@@ -30,24 +30,59 @@ License
 
 void Foam::h5Write::meshWrite()
 {
-    Info<< "h5Write::meshWrite:" << endl;
+//    Info<< "### h5Write::meshWrite: ###" << endl;
     
     // Find over all (global) number of cells per process
     nCells_[Pstream::myProcNo()] = mesh_.cells().size();
     Pstream::gatherList(nCells_);
     Pstream::scatterList(nCells_);
-    
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // Find over all (global) number of patch faces per process
+
+	nPatchCells_.setSize( patchNames_.size() ); // set size of List<label> nPatchCells_
+
+	forAll(patchNames_, patchI) //loop over all patches with iterator patchI
+    	{
+       		label patchID = mesh_.boundaryMesh().findPatchID( patchNames_[patchI]  ); // get patchID from each patch
+		nPatchCells_[patchI] = mesh_.boundaryMesh()[patchID].size(); // fill list nPatchCells with nr. of patch cells for each patch
+	}
+			
+	// fill List<List<label>> nPatchCellsPerProc_ with List<label> nPatchCells_
+	nPatchCellsPerProc_[Pstream::myProcNo()] = nPatchCells_; // fill nPatchCellsPerProc_ with nr. of patch cells for each patch for each proc
+
+	// share with all mpi processes
+	Pstream::gatherList(nPatchCellsPerProc_); 
+        Pstream::scatterList(nPatchCellsPerProc_);
+
+        // test it with Info
+/* 
+	forAll(nPatchCellsPerProc_, proc)      
+        {
+		forAll(patchNames_, patchI)
+		{
+                    	Info << " Proc[" << proc <<"], Patch[" << patchNames_[patchI] << 
+				"], Nr.of faces = " << nPatchCellsPerProc_[proc][patchI] << endl;
+		}
+        }
+*/
+    ////////////////////////////////////////////////////////////////////////////////
+
+
     // Write mesh
     meshWritePoints();
     meshWriteCells();
+    // Write mesh patch faces
+    meshWritePatchFaces();
     
-    Info<< endl;
+//    Info<< endl;
 }
 
 
 void Foam::h5Write::meshWritePoints()
-{   
-    Info<< "  meshWritePoints" << endl;
+{ 
+
+//  Info<< "### meshWritePoints ###" << endl;
     
     const pointField& points = mesh_.points();
     
@@ -119,12 +154,15 @@ void Foam::h5Write::meshWritePoints()
     }
     
     // Open correct dataset for this process
+    // see with h5dump -H --> GROUP "MESH" { GROUP "0" { GROUP "processor0" { DATASET "POINTS" { ... } }}}
+
     sprintf
         (
             datasetName,
             "MESH/%s/processor%i/POINTS",
             mesh_.time().timeName().c_str(),
             Pstream::myProcNo()
+	    //  variables %s --> mesh_.time().timeName().c_str(); %i --> Pstream::myProcNo()
         );
     dsetID = H5Dopen2(fileID_, datasetName, H5P_DEFAULT);
     
@@ -153,7 +191,8 @@ void Foam::h5Write::meshWritePoints()
 
 void Foam::h5Write::meshWriteCells()
 {
-    Info<< "  meshWriteCells" << endl;
+
+//  Info<< "### meshWriteCells ###" << endl;
 
     // Map shapes OpenFOAM->XDMF
     Map<label> shapeLookupIndex;
@@ -186,7 +225,15 @@ void Foam::h5Write::meshWriteCells()
             myDataset[j] = shapeId; j++;
             forAll(vrtList, i)
             {
+
+//		Info << "### MESH: cellId="<<cellId<<", j="<<j<<", i="<<i<<", shape="<<shape<<", mapIndex="<<mapIndex<<
+//                        ", shapeId="<<shapeId<<", myDataset["<<j<<"]="<<myDataset[j]<<"."
+//                        << endl;
+
                 myDataset[j] = vrtList[i]; j++;
+
+//		Info << "myDataset["<<j<<"]="<<myDataset[j]<<", vrtList=" << vrtList << endl;
+		
             }
         }
         
@@ -233,12 +280,15 @@ void Foam::h5Write::meshWriteCells()
         dimsf[0] = datasetSizes[proc];
         fileSpace = H5Screate_simple(1, dimsf, NULL);
         
+        //  h5dump -H --> GROUP "MESH" { GROUP "0" { GROUP "processor0" { DATASET "CELLS" { ... } }}}
         sprintf
             (
                 datasetName,
                 "MESH/%s/processor%i/CELLS",
                 mesh_.time().timeName().c_str(),
                 proc
+
+		//  variables %s --> mesh_.time().timeName().c_str(); %i --> proc
             );
         
         dsetID = H5Dcreate2
@@ -307,13 +357,191 @@ void Foam::h5Write::meshWriteCells()
             H5T_NATIVE_INT,
             H5S_ALL,
             H5S_ALL,
-		        plistID,
-		        myDataset
-		    );
+	    plistID,
+	    myDataset
+	);
     
     H5Pclose(plistID); 
     H5Dclose(dsetID);
-}
+}// end of Foam::h5Write::meshWriteCells()
+
+////////////////////////////////////////////////////////////////////
+
+void Foam::h5Write::meshWritePatchFaces()
+{
+
+//  Info<< "### meshWritePatchFaces ###" << endl;
+
+    // Map face shapes OpenFOAM -> XDMF (polygon=3,triangle=4, quadrilateral=5)
+/*    Map<label> faceLookupIndex;
+    faceLookupIndex.insert(hexModel->index(), 0);
+    faceLookupIndex.insert(prismModel->index(), 1);
+    faceLookupIndex.insert(tetModel->index(), 2);
+    faceLookupIndex.insert(pyrModel->index(), 3);
+*/
+
+    forAll(patchNames_, patchI) //loop over all patches with iterator patchI
+    {
+	label patchID = mesh_.boundaryMesh().findPatchID( patchNames_[patchI]  ); // get patchID from each patch
+	const fvPatch& myPatch = mesh_.boundary()[patchID]; // define patch
+//	Info <<"  Patch for loop: " << patchNames_[patchI] <<" with patchID "<< patchID << endl;
+
+	int j = 0;
+	// initialize plain array with number of faces for each patch on each proc * 5 ( shapeID + 4 points --> quadrilateral faces)
+    	int myFaceDataset[5*nPatchCellsPerProc_[Pstream::myProcNo()][patchI]];
+	label shapeId = 5; // hard coded to test it with quadrilateral faces (XDMF --> quadrilateral=5)
+
+	forAll(myPatch,faceI) //loop over all faces of patch
+    	{
+		const label& faceID = myPatch.start() + faceI;
+
+		myFaceDataset[j] = shapeId; // first array component is shapeID, seperate nodes relating to a face with shapeID
+//		Info << "myFaceDataset["<<j<<"]="<<myFaceDataset[j]<< endl;
+		j++;
+
+         	forAll(mesh_.faces()[faceID], nodei) //loop over all nodes of one face with faceID
+			{
+               			const label& nodeID = mesh_.faces()[faceID][nodei];
+//				Info << "faceID="<<faceID<<", nodeID="<<nodeID<< endl;
+
+				// fill array with nodes that form a face , seperate each face with shape ID
+				myFaceDataset[j]=nodeID;	
+//				Info << "myFaceDataset["<<j<<"]="<<myFaceDataset[j]<< endl;
+				j++;
+         		}
+	} //end of loop over faces for myPatch
+
+//	Info << " Finished array filling for patch " << patchNames_[patchI] << "; Creating hdf5 datasets ... "<< endl;
+    
+    	// Create the different datasets (needs to be done collectively)
+    	char datasetName[80];
+    	hsize_t dimsf[1];
+    	hid_t fileSpace;
+    	hid_t dsetID;
+    	hid_t attrID;
+    	hid_t plistID;
+    	hid_t plistDCreate;
+
+    	forAll(nPatchCellsPerProc_, proc)
+    	{
+
+//		Info << " Entered loop for creating datasets for proc "<<proc<<" ..." << endl;
+
+        	// Set property to create parent groups as neccesary
+        	plistID = H5Pcreate(H5P_LINK_CREATE);
+        	H5Pset_create_intermediate_group(plistID, 1);
+		
+        	// Set chunking, compression and other HDF5 dataset properties
+        	plistDCreate = H5Pcreate(H5P_DATASET_CREATE);
+        	dsetSetProps(1, sizeof(int), 5*nPatchCellsPerProc_[proc][patchI], plistDCreate); // 5* ( shapeID + 4 points --> quad faces)
+
+        	// Create dataspace for cell list
+        	dimsf[0] = 5*nPatchCellsPerProc_[proc][patchI]; // 5* ( shapeID + 4 points --> quad faces)
+        	fileSpace = H5Screate_simple(1, dimsf, NULL);
+
+        	// h5dump -H --> GROUP "MESH" { GROUP "0" { GROUP "inlet" { GROUP "processor0" { DATASET "FACES" { ... } }}}
+        	sprintf
+            	(
+                	datasetName,
+                	"MESHPATCHES/%s/%s/processor%i/FACES",
+                	mesh_.time().timeName().c_str(),
+			patchNames_[patchI].c_str(),
+                	proc
+            	);
+
+        	dsetID = H5Dcreate2
+            	(
+                	fileID_,
+                	datasetName,
+                	H5T_NATIVE_INT,
+                	fileSpace,
+                	plistID,
+                	plistDCreate,
+                	H5P_DEFAULT
+            	);
+        	
+		H5Sclose(fileSpace);
+
+//		Info << " Finished creating hdf5 datasets; Create and write attributes with nFaces ... "<< endl;
+
+		// Create and write attributte to store number of faces of each processor
+        	dimsf[0] = 1;
+        	fileSpace = H5Screate_simple(1, dimsf, NULL);
+
+        	attrID = H5Acreate2
+            	(
+                	dsetID,
+                	"nFaces",
+                	H5T_NATIVE_INT,
+                	fileSpace,
+                	H5P_DEFAULT,
+                	H5P_DEFAULT
+            	);
+
+        	int nFaces = nPatchCellsPerProc_[proc][patchI];
+        	H5Awrite
+            	(
+               	 	attrID,
+                	H5T_NATIVE_INT,
+                      	&nFaces
+                );
+
+        	H5Aclose(attrID);
+        	H5Sclose(fileSpace);
+
+        	// Close last access pointers
+        	H5Dclose(dsetID);
+        	H5Pclose(plistID);
+        	H5Pclose(plistDCreate);
+    	
+
+	}// end loop over nPatchCellsPerProc_
+
+
+//	Info << " Open and write datasets ... "<< endl;
+
+	// Open and write correct dataset for this process and only write when processor has faces on that patch
+	if ( nPatchCellsPerProc_[Pstream::myProcNo()][patchI] != 0 )
+        {
+
+		// Create property list for collective dataset write.
+    		plistID = H5Pcreate(H5P_DATASET_XFER);
+    		H5Pset_dxpl_mpio(plistID, H5_XFER_MODE);
+
+    		sprintf
+        	(
+            		datasetName,
+			"MESHPATCHES/%s/%s/processor%i/FACES",
+                	mesh_.time().timeName().c_str(),
+                	patchNames_[patchI].c_str(),
+            		Pstream::myProcNo()
+        	);
+    	
+    		dsetID = H5Dopen2(fileID_, datasetName, H5P_DEFAULT);
+
+    		H5Dwrite
+        	(
+            		dsetID,
+            		H5T_NATIVE_INT,
+            		H5S_ALL,
+            		H5S_ALL,
+                	plistID,
+        		myFaceDataset
+        	);
+
+    		H5Pclose(plistID);
+    		H5Dclose(dsetID);
+
+	} // end of if loop
+
+    } // end of loop over patches
+
+    // Release memory
+    //delete [] myFaceDataset;
+
+} // end of Foam::h5Write::meshWritePatchFaces()
+
+////////////////////////////////////////////////////////////////////
 
 
 const Foam::cellModel* Foam::h5Write::unknownModel = Foam::cellModeller::

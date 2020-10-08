@@ -28,9 +28,10 @@ License
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
+
 void Foam::h5Write::fileCreate()
 {
-    Info<< "h5Write::fileCreate:" << endl;
+//    Info<< "h5Write::fileCreate:" << endl;
     
     
     // Create directory if nonexisting
@@ -65,7 +66,7 @@ void Foam::h5Write::fileCreate()
         );
     
     // Close the property list
-    H5Pclose(plistID);
+    H5Pclose(plistID); // H5Pclose: discard property object
     
     // Print info to terminal
     Info<< "  Chosen filename " << dataFile << endl << endl;

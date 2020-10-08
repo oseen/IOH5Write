@@ -29,19 +29,21 @@ License
 
 void Foam::h5Write::fieldWrite()
 {
-    Info<< "  h5Write::fieldWrite:"  << endl;
+//    Info<< "  h5Write::fieldWrite:"  << endl;
     fieldWriteScalar();
     fieldWriteVector();
 }
 
+//--------------------------------------------------------------------//
 
 void Foam::h5Write::fieldWriteScalar()
 {
-    forAll(scalarFields_, fieldI)
+    forAll(scalarFields_, fieldI) // Loop over all scalar fields, iterator = fieldI
     {
-        Info<< "    fieldWriteScalar: " << scalarFields_[fieldI] << endl;
+	// print which scalar fields to write 
+//        Info<< "    fieldWriteScalar: " << scalarFields_[fieldI] << endl;
         
-        // Lookup field
+        
         const volScalarField& field = obr_.lookupObject<volScalarField>
             (
                 scalarFields_[fieldI]
@@ -50,30 +52,32 @@ void Foam::h5Write::fieldWriteScalar()
         
         // Initialize a plain continous array for the data
         ioScalar* scalarData;
-        scalarData = new ioScalar[field.size()];
+        scalarData = new ioScalar[field.size()]; // initialize array with field.size() components
+// 	Info << "Field.size() = " << field.size() << endl;       
         
-        
-        // Loop through the field and construct the array
+        // Loop through field (iterator = iter) and construct the array
         forAll(field, iter)
         {
-            scalarData[iter] = field[iter];
+            scalarData[iter] = field[iter]; // fill array scalarData with field information
         }
         
         
         // Create the different datasets (needs to be done collectively)
         char datasetName[80];
-        hsize_t dimsf[1];
-        hid_t fileSpace;
-        hid_t dsetID;
-        hid_t plistID;
-        hid_t plistDCreate;
+        hsize_t dimsf[1];	// define dataset dimensions
+        hid_t fileSpace;	// fileSpace handle
+        hid_t dsetID;		// handle
+        hid_t plistID;		// handle
+        hid_t plistDCreate;	// handle
         
+	// loop through nCells_ with iterator = proc = processor number (0,1,2,..)
         forAll(nCells_, proc)
         {
-            // Create the dataspace for the dataset
+            // Create the dataspace for the dataset with number of cells on the current processor
             dimsf[0] = nCells_[proc];
+//	    Info << "nCells_[proc] = " << nCells_[proc] << ", with proc = " << proc << endl;
             
-            fileSpace = H5Screate_simple(1, dimsf, NULL);
+            fileSpace = H5Screate_simple(1, dimsf, NULL); // H5Screate_simple(RANK, dimsf, NULL);
             
             // Set property to create parent groups as neccesary
             plistID = H5Pcreate(H5P_LINK_CREATE);
@@ -84,13 +88,16 @@ void Foam::h5Write::fieldWriteScalar()
             dsetSetProps(1, sizeof(ioScalar), nCells_[proc], plistDCreate);
             
             // Create the dataset for points
+	    // see h5dump_H --> GROUP "0.025" { GROUP "processor0" { DATASET "Lambda2" { } }}}
+
             sprintf
                 (
                     datasetName,
-                    "FIELDS/%s/processor%i/%s",
+                    "INTERNALFIELDS/%s/processor%i/%s",
                     mesh_.time().timeName().c_str(),
                     proc,
                     scalarFields_[fieldI].c_str()
+		    // %s --> mesh_.time().timeName().c_str(); %i --> proc; %s --> scalarFields_[fieldI].c_str()
                 );
             
             dsetID = H5Dcreate2
@@ -107,14 +114,15 @@ void Foam::h5Write::fieldWriteScalar()
             H5Pclose(plistID);
             H5Pclose(plistDCreate);
             H5Sclose(fileSpace);
-        }
+
+        }// here does loop over all nCells_ end
         
         
         // Open correct dataset for this process
         sprintf
             (
                 datasetName,
-                "FIELDS/%s/processor%i/%s",
+                "INTERNALFIELDS/%s/processor%i/%s",
                 mesh_.time().timeName().c_str(),
                 Pstream::myProcNo(),
                 scalarFields_[fieldI].c_str()
@@ -143,16 +151,23 @@ void Foam::h5Write::fieldWriteScalar()
         H5Dclose(dsetID);
         
         // Release memory
+	// array scalarData obsolete after written to hdf5
         delete [] scalarData;
-    }
+
+//	Info<< "    End of fieldWriteScalar: " << scalarFields_[fieldI] << endl;
+
+    } // here does loop over scalarFields_ end
+
 }
 
+//-------------------------------------------------------------------//
+// Do the same for all vectors (velocity, ...)
 
 void Foam::h5Write::fieldWriteVector()
 {
-    forAll(vectorFields_, fieldI)
+    forAll(vectorFields_, fieldI) // Loop through all vectorFields_ with iterator fieldI
     {
-        Info<< "    fieldWriteVector: " << vectorFields_[fieldI] << endl;
+//        Info<< "    fieldWriteVector: " << vectorFields_[fieldI] << endl;
         
         const volVectorField& field = obr_.lookupObject<volVectorField>
             (
@@ -170,17 +185,19 @@ void Foam::h5Write::fieldWriteVector()
             vectorData[3*iter+0] = field[iter].x();
             vectorData[3*iter+1] = field[iter].y();
             vectorData[3*iter+2] = field[iter].z();
+	    //vectorData[x1,y1,z1,x2,y2,z2,x3,y3,z3,x4,y4,z4......] this is how the array gets filled
         }
         
         
         // Create the different datasets (needs to be done collectively)
         char datasetName[80];
-        hsize_t dimsf[2];
+        hsize_t dimsf[2]; // 2 because we store nCells_[proc] and dimensions of vector (for scalar it was 1 because we only stored nCells_[proc])
         hid_t fileSpace;
         hid_t dsetID;
         hid_t plistID;
         hid_t plistDCreate;
         
+	// loop through nCells_ with iterator proc
         forAll(nCells_, proc)
         {
             
@@ -201,7 +218,7 @@ void Foam::h5Write::fieldWriteVector()
             sprintf
                 (
                     datasetName,
-                    "FIELDS/%s/processor%i/%s",
+                    "INTERNALFIELDS/%s/processor%i/%s",
                     mesh_.time().timeName().c_str(),
                     proc,
                     vectorFields_[fieldI].c_str()
@@ -222,14 +239,15 @@ void Foam::h5Write::fieldWriteVector()
             H5Pclose(plistID);
             H5Pclose(plistDCreate);
             H5Sclose(fileSpace);
-        }
+
+        } // end loop over nCells_ with iterator proc
         
         
         // Open correct dataset for this process
         sprintf
             (
                 datasetName,
-                "FIELDS/%s/processor%i/%s",
+                "INTERNALFIELDS/%s/processor%i/%s",
                 mesh_.time().timeName().c_str(),
                 Pstream::myProcNo(),
                 vectorFields_[fieldI].c_str()
@@ -257,9 +275,15 @@ void Foam::h5Write::fieldWriteVector()
         H5Pclose(plistID);
         H5Dclose(dsetID);
         
-        // Release memory
+        // Release memory, vectorData array not needed anymore after hdf5 was written
         delete [] vectorData;
-    }
+
+//	Info<< "    End of fieldWriteVector: " << vectorFields_[fieldI] << endl;
+
+    } // end loop over vectorFields with iterator fieldI
+
+//    Info <<  endl;	// better readabilty in output logfile
+//    Info <<  endl;	// 
 }
 
 

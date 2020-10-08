@@ -44,6 +44,8 @@ Author
 namespace Foam
 {
     typedef IOOutputFilter<h5Write> IOh5Write;
+
+//    Info << "### Flo: IOh5Write.C entered ###" << endl;
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

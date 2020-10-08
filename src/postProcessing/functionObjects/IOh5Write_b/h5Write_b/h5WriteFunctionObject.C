@@ -29,6 +29,9 @@ License
 
 namespace Foam
 {
+
+//Info << "\n ### Flo: h5WriteFunctionObject.C ### \n" << endl;
+
     defineNamedTemplateTypeNameAndDebug
     (
         h5WriteFunctionObject,
@@ -42,5 +45,6 @@ namespace Foam
         dictionary
     );
 }
+
 
 // ************************************************************************* //
