@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# Create base mesh and decompose
+blockMesh > log.blockMesh 2>&1
+decomposePar > log.decomposePar 2>&1
+
+# Run analysis
+mpirun -np 3 icoFoam -parallel > log.simulation 2>&1
+

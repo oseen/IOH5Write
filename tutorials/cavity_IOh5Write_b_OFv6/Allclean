@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# Remove decomposition subdirs
+rm -rf processor*
+
+# Remove log files and more
+rm -r log.* xdmf_b h5Data
+
+# Clear any reconstructed results
+#foamCleanTutorials
+
+# And delete mesh
+foamCleanPolyMesh
+
