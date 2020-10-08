@@ -23,12 +23,20 @@ I generally build HDF5 from scratch, as the pre-build binaries available around 
 
 This branch was tested with hdf5-1.10.5. You can download it from https://portal.hdfgroup.org/display/support/Download+HDF5.
 
-I have found the following procedure and configuration well suited:
-Extract the downloaded hdf5-1.10.5.tar.gz into your prefered installation folder.
-Go into the extracted hdf5-1.10.5 diectory.
+I have found the following procedure and configuration well suited.
+Extract the downloaded ``hdf5-1.10.5.tar.gz`` into your preferred installation folder.
+Go into the extracted ``hdf5-1.10.5`` diectory.
 Configure with:
+
 ``CC=mpicc CFLAGS=-fPIC LDFLAGS=-fPIC ./configure --prefix=/path/to/hdf5-1.10.5/build --enable-parallel --enable-shared``
-Build hdf5 in two steps by using the command ``make`` and afterwards ``make install``.
+
+Build hdf5 in two steps by using the commands 
+
+``make`` 
+
+and afterwards 
+
+``make install``.
 
 
 Choosing between single and double precision IO
@@ -61,7 +69,7 @@ There are a few known bugs and limitations:
 
 1. The code only work in parallel. This is a consequence of the design of OpenFOAM, since ``MPI_Init`` is never called for serial runs, hence the parallel HDF5 library cannot use MPI-IO.
 2. The XDMF file must be written after the simulation. This is not a bug, but a slight limitation embeddedn in the design.
-3. Within this branch it is possible to additionally write patch or boundary data to hdf5 archive. Up to now this is only possible for quadrilateral faces. It is not possible to write out boundary data with the boundary condition "empty".
+3. Within this branch it is possible to additionally write patch or boundary data to the hdf5 archive. Up to now this is only possible for quadrilateral faces. In general, it is not possible to write out boundary data for boundaries having the boundary condition "empty".
 4. Like in the base work from https://github.com/hakostra/IOH5Write, the library is able to write scalar and vector fields to the hdf5 archive. Up to now it the implementation for tensor fields is still missing.
 5. The code is not very well structured, and does not utilize many of the object-oriented features C++ gives. This is partly because the HDF5 library is a pure C library, requiring you to deal with pointers to arrays and stuff, partly due to my lack of C++ skills. This is on top of the list of things that needs to be done, perhaps I will fix it when I find time.
 
