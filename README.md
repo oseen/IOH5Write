@@ -12,7 +12,7 @@ Installation
 2. Install the HDF5-library. Make sure that you install or compile it with parallel/MPI support. In Ubuntu this is done by installing the package ``libhdf5-openmpi-dev``. It might be necessary to compile both OpenFOAM and HDF5 against the same MPI library and version. See the section 'hints on the hdf5-compilation' below.
 3. Grab a copy of this branch, and enter the code directory. You can for example place the code in your ``~/OpenFOAM/username-6`` folder.
 4. Set the environment variable ``HDF5_DIR`` to your HDF5 installation directory in the Make/options file. It makes the variable "visible" for the compile script with ``export HDF5_DIR=/path/to/hdf5-1.10.5/build/``. Do the same for ``SYSTEMOPENMPI`` in the Make/options file. Make the variable "visible" with ``export SYSTEMOPENMPI=/path/to/openmpi/include/``.
-5. Compile the code with the common ``wmake libso`` and wait. This command must be executed within the directory where the Make folder is located.
+5. Compile the code with the common ``wmake libso`` and wait. This command must be executed within the directory where the ``Make`` folder is located.
 
 If you encounter any problems during the installation, this is probably because you have a problem with either the OpenFOAM installation, HDF5 library or have failed to follow the instructions properly. You should pay special attention to the HDF5 library and make sure that the parallel support is enabled.
 
