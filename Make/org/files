@@ -1,5 +1,0 @@
-h5Write_b_OFv6/h5Write.C
-h5Write_b_OFv6/h5WriteGrouping.C
-h5Write_b_OFv6/h5FileOps.C
-
-LIB = $(FOAM_USER_LIBBIN)/libIOh5Write_b_OFv6
