@@ -1,4 +1,4 @@
-export HDF5_DIR=/opt/hdf5/hdf5-1.10.5/build/
+export HDF5_DIR=/path/to/hdf5-1.10.5/build/
 export SYSTEMOPENMPI=~/OpenFOAM/ThirdParty-2.3.1/openmpi-1.6.5/
 
 sinclude $(GENERAL_RULES)/mplib$(WM_MPLIB)
