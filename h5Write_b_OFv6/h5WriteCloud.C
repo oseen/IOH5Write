@@ -374,12 +374,15 @@ void Foam::functionObjects::h5Write::cloudWrite()
         // Write slip velocity Us = U - Uc
         if (findStrings(cloudAttribs_, "Us"))
         {
+
+	    Info << "CAUTION: Writing cloud attribute Us was commented out. This part of code must be debugged in h5WriteCloud.C" <<endl;
+/*		
             label i = 0;
             forAllIter(basicKinematicCloud, *q, pIter)
             {
-                particleScalar3[3*i+0] = pIter().U().x() - pIter().Uc().x();
-                particleScalar3[3*i+1] = pIter().U().y() - pIter().Uc().y();
-                particleScalar3[3*i+2] = pIter().U().z() - pIter().Uc().z();
+                particleScalar3[3*i+0] = pIter().U().x() - pIter().td.Uc().x();
+                particleScalar3[3*i+1] = pIter().U().y() - pIter().td.Uc().y();
+                particleScalar3[3*i+2] = pIter().U().z() - pIter().td.Uc().z();
                 i++;
             }
             
@@ -401,6 +404,7 @@ void Foam::functionObjects::h5Write::cloudWrite()
                     datasetName,
                     H5T_SCALAR
                 );
+*/		
         }
         
         // Free memory for 3-comp. dataset of type 'ioScalar'
