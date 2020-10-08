@@ -19,7 +19,7 @@ If you encounter any problems during the installation, this is probably because 
 
 Some hints on the HDF5-compilation
 ----------------------------------
-I generally build HDF5 from scratch, as the pre-build binaries available around on the different systems I use is all build with different options. Building HDF5 does not require any special libraries, but it is easy to miss that HFD5 automatically disable the building of shared libraries (which is necessary for OpenFOAM) when building parallel versions.
+I generally build HDF5 from scratch, as the pre-build binaries available around on the different systems I use are all build with different options. Building HDF5 does not require any special libraries, but it is easy to miss that HFD5 automatically disable the building of shared libraries (which is necessary for OpenFOAM) when building parallel versions.
 
 This branch was tested with hdf5-1.10.5. You can download it from https://portal.hdfgroup.org/display/support/Download+HDF5.
 
@@ -39,7 +39,7 @@ and afterwards
 ``make install``.
 
 
-Choosing between single and double precision IO
+Choosing between single and double precision I/O
 -----------------------------------------------
 The solution of your problem (that is going to be written) is usually found by an iterative method, that gives an approximate answer. This approximation typically has 6-8 significant digits, far from the 15 significant digits in double precision. To save space (a lot actually) it is possible to write the solution data in single precision, independent on the precision settings in OpenFOAM.
 
@@ -66,11 +66,11 @@ Known bugs and limitations
 There are a few known bugs and limitations:
 
 1. The code only works in parallel. This is a consequence of the design of OpenFOAM, since ``MPI_Init`` is never called for serial runs, hence the parallel HDF5 library cannot use MPI-IO.
-2. With the branch 'IOH5Write_b_OFv6' it is possible to additionally write patch or boundary data to the hdf5 archive. Up to now this is only possible for quadrilateral faces. In general, it is not possible to write out boundary data for boundaries having the boundary condition "empty".
+2. With the branch 'IOH5Write_b_OFv6' it is possible to additionally write patch or boundary data to the hdf5 archive. Up to now this is only possible for quadrilateral faces. In general, it is not possible to write out boundary data for boundaries having the boundary condition "empty" (2D-Simulations).
 3. Like in the base work from https://github.com/hakostra/IOH5Write, the library is able to write scalar and vector fields to the hdf5 archive. Up to now, the implementation for tensor fields is still missing.
 4. Like in the base work from https://github.com/hakostra/IOH5Write, the code has no clean simulation ending.
 5. The code does not utilize many of the object-oriented features C++ gives. This is partly because the HDF5 library is a pure C library, requiring you to deal with pointers to arrays and so on, partly due to our lack of C++ skills.
-6. The option to write the particle attribute ``Us`` (slip velocity) to a hdf5 archive is commented out at the moment since the relevant part in the file ``h5WriteCloud.C`` still needs to be adapted to newer OpenFOAM versions (OpenFOAM-6).
+6. The option to write the particle attribute ``Us`` (slip velocity) to a hdf5 archive is commented out in the current version since the relevant part in the file ``h5WriteCloud.C`` still needs to be adapted to newer OpenFOAM versions (OpenFOAM-6).
 
 
 Found yet another bug? Got suggestions for improvements?
