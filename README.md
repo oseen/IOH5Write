@@ -1,7 +1,7 @@
-IOH5Write
-=========
+IOH5Write-b
+===========
 
-Fork and branch.
+This branch is based on a fork from https://github.com/hakostra/IOH5Write. The library of the branch IOH5Write-b has now the possibility to include patches or boundary data to be written to hdf5 archive.
 
 Library that write OpenFOAM cases as HDF5 archives instead of the default one-file-per-process-per-timestep-per-variable approach. This saves a lot of files, makes it easier to manage, copy, and post-process the results. An XDMF file is used to describe the contents of the HDF5-file and this can easily be opened in ParaView, VisIt or any other common postprocessor tool. The IO part is handled by MPI-IO, which makes it effective on clusters and high-performance computers with thousands of nodes and parallel file systems.
 
