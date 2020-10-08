@@ -45,12 +45,12 @@ Choosing between single and double precision IO
 -----------------------------------------------
 The solution of your problem (that is going to be written) is usually found by an iterative method, that gives an approximate answer. This approximation typically has 6-8 significant digits, far from the 15 significant digits in double precision. To save space (a lot actually) it is possible to write the solution data in single precision, independent on the precision settings in OpenFOAM.
 
-This choice of output precision is done at compile time, and the default is single precision (32 bit floating point numbers). To switch, you set either -DWRITE_SP (for single prec.) or -DWRITE_DP (for double prec.) in the ``Make/options`` file. 
+This choice of output precision is done at compile time, and the default is single precision (32 bit floating point numbers). To switch, you set either ``-DWRITE_SP`` (for single prec.) or ``-DWRITE_DP`` (for double prec.) in the ``Make/options`` file. 
 
 
 Writing XDMF files
 ------------------
-The XDMF files is written *after* the simulation is finished by using the python script 'writeXDMF_b_v2.py'. The script will, if not supplied with any additional arguments, parse the file 'h5Data/h5Data0.h5', and write the resulting XDMF files in a folder called 'xdmf_b'. Single XDMF-files will be created for the internalField/mesh data, and/or for patch/boundary data, and/or for each cloud of particles. Usage instructions can be given with the option --help.
+The XDMF files is written *after* the simulation is finished by using the python script ``writeXDMF_b_v2.py``. The script will, if not supplied with any additional arguments, parse the file ``h5Data/h5Data0.h5``, and write the resulting XDMF files in a folder called ``xdmf_b``. Single XDMF-files will be created for the internalField/mesh data, and/or for patch/boundary data, and/or for each cloud of particles. Usage instructions can be given with the option ``--help``.
 
 
 Testing
