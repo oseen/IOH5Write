@@ -1,16 +1,16 @@
 IOH5Write_b
 ===========
 
-This branch is based on a fork from https://github.com/hakostra/IOH5Write. The library of the branch IOH5Write_b has now the possibility to include patches or boundary data to be written to hdf5 archive. It was tested with OpenFOAM-2.3.1.
+This branch is based on a fork from https://github.com/hakostra/IOH5Write. The library of this branch 'IOH5Write_b' has now the possibility to include patches or boundary data to be written to hdf5 archive. It was tested with OpenFOAM-2.3.1.
 
 The library writes OpenFOAM cases as HDF5 archives instead of the default one-file-per-process-per-timestep-per-variable approach. This saves a lot of files, makes it easier to manage, copy, and post-process the results. An XDMF file is used to describe the contents of the HDF5-file and this can easily be opened in ParaView, VisIt or any other common postprocessor tool. The IO part is handled by MPI-IO, which makes it effective on clusters and high-performance computers with thousands of nodes and parallel file systems.
 
 
 Installation
 ------------
-1. Make sure you have a working copy of OpenFOAM 2.2.x or 2.3.x (This branch was tested with OpenFOAM-2.3.1). Make sure that you have all necessary compilers and development libraries, including MPI. 
-2. Install the HDF5-library. Make sure that you install or compile it with parallel/MPI support. In Ubuntu this is done by installing the package ``libhdf5-openmpi-dev``. I guess it is necessary to compile both OpenFOAM and HDF5 against the same MPI library and version. I use the OpenMPI that is supplied with the OpenFOAM Thirdparty-2.3.1 directory, and have compiled both OpenFOAM and HDF5 against this.
-3. Grab a copy of this repository, and enter the code directory. You can for example place the code in your ``~/OpenFOAM/username-2.3.x`` folder.
+1. Make sure you have a working copy of OpenFOAM 2.2.x or 2.3.x (this branch was tested with OpenFOAM-2.3.1). Make sure that you have all necessary compilers and development libraries, including MPI. 
+2. Install the HDF5-library. Make sure that you install or compile it with parallel/MPI support. In Ubuntu this is done by installing the package ``libhdf5-openmpi-dev``. I guess it is necessary to compile both OpenFOAM and HDF5 against the same MPI library and version. In this branch, I use the OpenMPI that is supplied with the OpenFOAM Thirdparty-2.3.1 directory, and have compiled both OpenFOAM and HDF5 against this.
+3. Grab a copy of this branch, and enter the code directory. You can for example place the code in your ``~/OpenFOAM/username-2.3.x`` folder.
 4. Set the environment variable ``HDF5_DIR`` to your HDF5 installation directory in the Make/options file. It makes the variable "visible" for the compile script with ``export HDF5_DIR=/path/to/hdf5InstallDirectory``. Do the same for ``SYSTEMOPENMPI`` in the Make/options file. Make the variable "visible" with ``export SYSTEMOPENMPI=/path/to/ThirdParty-2.3.1/openmpi-1.6.5/``. The path to the Make/options file is ``src/postProcessing/functionObjects/IOh5Write_b/Make/options``.
 5. Compile the code with the common ``./Allwmake`` and wait.
 
@@ -25,7 +25,7 @@ This branch was tested with hdf5-1.10.5. You can download it from https://portal
 
 I have found the following procedure and configuration well suited.
 Extract the downloaded ``hdf5-1.10.5.tar.gz`` into your preferred installation folder.
-Go into the extracted ``hdf5-1.10.5`` diectory.
+Go into the extracted ``hdf5-1.10.5`` directory.
 Configure with:
 
 ``CC=mpicc CFLAGS=-fPIC LDFLAGS=-fPIC ./configure --prefix=/path/to/hdf5-1.10.5/build --enable-parallel --enable-shared``
@@ -43,7 +43,7 @@ Choosing between single and double precision IO
 -----------------------------------------------
 The solution of your problem (that is going to be written) is usually found by an iterative method, that gives an approximate answer. This approximation typically has 6-8 significant digits, far from the 15 significant digits in double precision. To save space (a lot actually) it is possible to write the solution data in single precision, independent on the precision settings in OpenFOAM.
 
-This choice of output precision is done at compile time, and the default is single precision (32 bit floating point numbers). To switch, you set either -DWRITE_SP (for single prec.) or -DWRITE_DP (for double prec.) in the ``src/postProcessing/functionObjects/IOh5Write/Make/options`` file. See around line 9 for this option.
+This choice of output precision is done at compile time, and the default is single precision (32 bit floating point numbers). To switch, you set either -DWRITE_SP (for single prec.) or -DWRITE_DP (for double prec.) in the ``src/postProcessing/functionObjects/IOh5Write/Make/options`` file. 
 
 
 Writing XDMF files
@@ -67,11 +67,12 @@ Known bugs and limitations
 --------------------------
 There are a few known bugs and limitations:
 
-1. The code only work in parallel. This is a consequence of the design of OpenFOAM, since ``MPI_Init`` is never called for serial runs, hence the parallel HDF5 library cannot use MPI-IO.
-2. The XDMF file must be written after the simulation. This is not a bug, but a slight limitation embeddedn in the design.
-3. Within this branch it is possible to additionally write patch or boundary data to the hdf5 archive. Up to now this is only possible for quadrilateral faces. In general, it is not possible to write out boundary data for boundaries having the boundary condition "empty".
-4. Like in the base work from https://github.com/hakostra/IOH5Write, the library is able to write scalar and vector fields to the hdf5 archive. Up to now it the implementation for tensor fields is still missing.
-5. The code is not very well structured, and does not utilize many of the object-oriented features C++ gives. This is partly because the HDF5 library is a pure C library, requiring you to deal with pointers to arrays and stuff, partly due to my lack of C++ skills. This is on top of the list of things that needs to be done, perhaps I will fix it when I find time.
+1. The code only works in parallel. This is a consequence of the design of OpenFOAM, since ``MPI_Init`` is never called for serial runs, hence the parallel HDF5 library cannot use MPI-IO.
+2. The XDMF file must be written after the simulation. This is not a bug, but a slight limitation embedded in the design.
+3. With the branch ``IOH5Write_b`` it is possible to additionally write patch or boundary data to the hdf5 archive. Up to now this is only possible for quadrilateral faces. In general, it is not possible to write out boundary data for boundaries having the boundary condition "empty".
+4. Like in the base work from https://github.com/hakostra/IOH5Write, the library is able to write scalar and vector fields to the hdf5 archive. Up to now the implementation for tensor fields is still missing.
+5. Like in the base work from https://github.com/hakostra/IOH5Write, the code has no clean simulation ending.
+6. The code is not very well structured, and does not utilize many of the object-oriented features C++ gives. This is partly because the HDF5 library is a pure C library, requiring you to deal with pointers to arrays and stuff, partly due to my lack of C++ skills. 
 
 
 Found yet another bug? Got suggestions for improvements?
