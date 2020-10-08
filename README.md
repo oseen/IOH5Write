@@ -3,16 +3,16 @@ IOH5Write_b_OFv6
 
 This branch is based on a fork from https://github.com/hakostra/IOH5Write. The library of this branch 'IOH5Write_b_OFv6' has now the possibility to include patches or boundary data to be written to hdf5 archive. It works with newer OpenFOAM versions. I was adapted for and tested with OpenFOAM-6.
 
-The library writes OpenFOAM cases as HDF5 archives instead of the default one-file-per-process-per-timestep-per-variable approach. This saves a lot of files, makes it easier to manage, copy, and post-process the results. An XDMF file is used to describe the contents of the HDF5-file and this can easily be opened in ParaView, VisIt or any other common postprocessor tool. The IO part is handled by MPI-IO, which makes it effective on clusters and high-performance computers with thousands of nodes and parallel file systems.
+The library writes OpenFOAM cases as HDF5 archives instead of the default (uncollated I/O) one-file-per-process-per-timestep-per-variable approach. This saves a lot of files, makes it easier to manage, copy, and post-process the results. An XDMF file is used to describe the contents of the HDF5-file and this can easily be opened in ParaView, VisIt or any other common postprocessor tool. The I/O part is handled by MPI-IO, which makes it effective on clusters and high-performance computers with thousands of nodes and parallel file systems. By writing to the hdf5 archive, no reconstruction process (reconstructPar) is necessary to reconstruct the fields and the mesh. This can save a lot of time when it is inevitable to reconstruct numerous time steps.
 
 
 Installation
 ------------
-1. Make sure you have a working copy of OpenFOAM 2.2.x or 2.3.x (this branch was tested with OpenFOAM-2.3.1). Make sure that you have all necessary compilers and development libraries, including MPI. 
-2. Install the HDF5-library. Make sure that you install or compile it with parallel/MPI support. In Ubuntu this is done by installing the package ``libhdf5-openmpi-dev``. I guess it is necessary to compile both OpenFOAM and HDF5 against the same MPI library and version. In this branch, I use the OpenMPI that is supplied with the OpenFOAM Thirdparty-2.3.1 directory, and have compiled both OpenFOAM and HDF5 against this.
-3. Grab a copy of this branch, and enter the code directory. You can for example place the code in your ``~/OpenFOAM/username-2.3.x`` folder.
-4. Set the environment variable ``HDF5_DIR`` to your HDF5 installation directory in the Make/options file. It makes the variable "visible" for the compile script with ``export HDF5_DIR=/path/to/hdf5InstallDirectory``. Do the same for ``SYSTEMOPENMPI`` in the Make/options file. Make the variable "visible" with ``export SYSTEMOPENMPI=/path/to/ThirdParty-2.3.1/openmpi-1.6.5/``. The path to the Make/options file is ``src/postProcessing/functionObjects/IOh5Write_b/Make/options``.
-5. Compile the code with the common ``./Allwmake`` and wait.
+1. Make sure you have a working copy of OpenFOAM-6. Make sure that you have all necessary compilers and development libraries, including MPI. 
+2. Install the HDF5-library. Make sure that you install or compile it with parallel/MPI support. In Ubuntu this is done by installing the package ``libhdf5-openmpi-dev``. It might be necessary to compile both OpenFOAM and HDF5 against the same MPI library and version. 
+3. Grab a copy of this branch, and enter the code directory. You can for example place the code in your ``~/OpenFOAM/username-6`` folder.
+4. Set the environment variable ``HDF5_DIR`` to your HDF5 installation directory in the Make/options file. It makes the variable "visible" for the compile script with ``export HDF5_DIR=/path/to/hdf5InstallDirectory``. Do the same for ``SYSTEMOPENMPI`` in the Make/options file. Make the variable "visible" with ``export SYSTEMOPENMPI=/path/to/openmpi/include/``.
+5. Compile the code with the common ``wmake libso`` and wait. This command must be executed within the directory where the Make folder is located.
 
 If you encounter any problems during the installation, this is probably because you have a problem with either the OpenFOAM installation, HDF5 library or have failed to follow the instructions properly. You should pay special attention to the HDF5 library and make sure that the parallel support is enabled.
 
@@ -48,19 +48,17 @@ This choice of output precision is done at compile time, and the default is sing
 
 Writing XDMF files
 ------------------
-The XDMF files is written *after* the simulation is finished by using the python script 'writeXDMF_b.py'. The script will, if not supplied with any additional arguments, parse the file 'h5Data/h5Data0.h5', and write the resulting XDMF files in a folder called 'xdmf_b'. Single XDMF-files will be created for the internalField/mesh data, and/or for patch/boundary data, and/or for each cloud of particles. Usage instructions can be given with the option --help.
-
-In case someone is interested, two (obsolete) Matlab-scripts that parse HDF5-files is also supplied. These do not have the same functionality or usability as the Python-script mentioned above, and they are not maintained and no patch/boundary writing is included.
+The XDMF files is written *after* the simulation is finished by using the python script 'writeXDMF_b_v2.py'. The script will, if not supplied with any additional arguments, parse the file 'h5Data/h5Data0.h5', and write the resulting XDMF files in a folder called 'xdmf_b'. Single XDMF-files will be created for the internalField/mesh data, and/or for patch/boundary data, and/or for each cloud of particles. Usage instructions can be given with the option --help.
 
 
 Testing
 -------
-Test the code by running the attached cavity tutorial with the attached ``./Allrun`` script. A directory called h5Data should be created, in which the file h5Data0.h5 is created. To use the code on other cases, look in the ``controlDict`` file in this case.
+Test the code by running the inluded cavity or pitzdaily tutorial with the attached ``Allrun`` script. A directory called h5Data should be created, in which the file h5Data0.h5 is created. To use the code on other cases, look in the ``controlDict`` file in this case.
 
 
 Compatibility
 -------------
-The code should work with both OpenFOAM 2.2.x and 2.3.x. It was only tested with OpenFOAM-2.3.1. It is recommended to use HDF5 version 1.10.5 or newer (https://portal.hdfgroup.org/display/support/Download+HDF5). The testing is only done with GCC compilers.
+The code works with OpenFOAM-6. There is a chance that it works also with other versions but this was not tested yet. It is recommended to use HDF5 version 1.10.5 or newer (https://portal.hdfgroup.org/display/support/Download+HDF5). The testing is only done with GCC compilers.
 
 
 Known bugs and limitations
@@ -69,8 +67,8 @@ There are a few known bugs and limitations:
 
 1. The code only works in parallel. This is a consequence of the design of OpenFOAM, since ``MPI_Init`` is never called for serial runs, hence the parallel HDF5 library cannot use MPI-IO.
 2. The XDMF file must be written after the simulation. This is not a bug, but a slight limitation embedded in the design.
-3. With the branch ``IOH5Write_b`` it is possible to additionally write patch or boundary data to the hdf5 archive. Up to now this is only possible for quadrilateral faces. In general, it is not possible to write out boundary data for boundaries having the boundary condition "empty".
-4. Like in the base work from https://github.com/hakostra/IOH5Write, the library is able to write scalar and vector fields to the hdf5 archive. Up to now the implementation for tensor fields is still missing.
+3. With the branch ``IOH5Write_b_OFv6`` it is possible to additionally write patch or boundary data to the hdf5 archive. Up to now this is only possible for quadrilateral faces. In general, it is not possible to write out boundary data for boundaries having the boundary condition "empty".
+4. Like in the base work from https://github.com/hakostra/IOH5Write, the library is able to write scalar and vector fields to the hdf5 archive. Up to now, the implementation for tensor fields is still missing.
 5. Like in the base work from https://github.com/hakostra/IOH5Write, the code has no clean simulation ending.
 6. The code is not very well structured, and does not utilize many of the object-oriented features C++ gives. This is partly because the HDF5 library is a pure C library, requiring you to deal with pointers to arrays and stuff, partly due to my lack of C++ skills. 
 
