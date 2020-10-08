@@ -9,7 +9,7 @@ The library writes OpenFOAM cases as HDF5 archives instead of the default (uncol
 Installation
 ------------
 1. Make sure you have a working copy of OpenFOAM-6. Make sure that you have all necessary compilers and development libraries, including MPI. 
-2. Install the HDF5-library. Make sure that you install or compile it with parallel/MPI support. In Ubuntu this is done by installing the package ``libhdf5-openmpi-dev``. It might be necessary to compile both OpenFOAM and HDF5 against the same MPI library and version. 
+2. Install the HDF5-library. Make sure that you install or compile it with parallel/MPI support. In Ubuntu this is done by installing the package ``libhdf5-openmpi-dev``. It might be necessary to compile both OpenFOAM and HDF5 against the same MPI library and version. See the section 'hints on the hdf5-compilation' below.
 3. Grab a copy of this branch, and enter the code directory. You can for example place the code in your ``~/OpenFOAM/username-6`` folder.
 4. Set the environment variable ``HDF5_DIR`` to your HDF5 installation directory in the Make/options file. It makes the variable "visible" for the compile script with ``export HDF5_DIR=/path/to/hdf5InstallDirectory``. Do the same for ``SYSTEMOPENMPI`` in the Make/options file. Make the variable "visible" with ``export SYSTEMOPENMPI=/path/to/openmpi/include/``.
 5. Compile the code with the common ``wmake libso`` and wait. This command must be executed within the directory where the Make folder is located.
@@ -43,7 +43,7 @@ Choosing between single and double precision IO
 -----------------------------------------------
 The solution of your problem (that is going to be written) is usually found by an iterative method, that gives an approximate answer. This approximation typically has 6-8 significant digits, far from the 15 significant digits in double precision. To save space (a lot actually) it is possible to write the solution data in single precision, independent on the precision settings in OpenFOAM.
 
-This choice of output precision is done at compile time, and the default is single precision (32 bit floating point numbers). To switch, you set either -DWRITE_SP (for single prec.) or -DWRITE_DP (for double prec.) in the ``src/postProcessing/functionObjects/IOh5Write/Make/options`` file. 
+This choice of output precision is done at compile time, and the default is single precision (32 bit floating point numbers). To switch, you set either -DWRITE_SP (for single prec.) or -DWRITE_DP (for double prec.) in the ``Make/options`` file. 
 
 
 Writing XDMF files
