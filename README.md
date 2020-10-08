@@ -28,9 +28,7 @@ Extract the downloaded hdf5-1.10.5.tar.gz into your prefered installation folder
 Go into the extracted hdf5-1.10.5 diectory.
 Configure with:
 ``CC=mpicc CFLAGS=-fPIC LDFLAGS=-fPIC ./configure --prefix=/path/to/hdf5-1.10.5/build --enable-parallel --enable-shared``
-Build hdf5 with: 
-``make``
-``make install``
+Build hdf5 in two steps by using the command ``make`` and afterwards ``make install``.
 
 
 Choosing between single and double precision IO
