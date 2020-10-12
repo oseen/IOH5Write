@@ -77,3 +77,9 @@ Found yet another bug? Got suggestions for improvements?
 ----------------------------------------------
 Feel free to mention it in the discussion thread at [www.cfd-online.com](http://www.cfd-online.com/Forums/openfoam-programming-development/122579-hdf5-io-library-openfoam.html).
 
+
+Acknowledgment
+--------------
+The support from 'KONWIHR' is gratefully acknowledged.
+KONWIHR [https://www.konwihr.de/] (Competence Network for Scientific High Performance Computing in Bavaria).
+
