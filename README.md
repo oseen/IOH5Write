@@ -81,5 +81,6 @@ Feel free to mention it in the discussion thread at [www.cfd-online.com](http://
 Acknowledgment
 --------------
 We gratefully acknowledge the support from 'KONWIHR'.
+
 KONWIHR [https://www.konwihr.de/] (Competence Network for Scientific High Performance Computing in Bavaria).
 
