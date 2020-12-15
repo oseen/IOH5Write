@@ -1,14 +1,15 @@
 
-export HDF5_DIR=/opt/hdf5/hdf5-1.10.5/build/
+export HDF5_DIR=/usr/include/hdf5/openmpi
+export HDF5_LIB_DIR=/usr/lib/x86_64-linux-gnu/hdf5/openmpi
 export SYSTEMOPENMPI=/usr/lib/x86_64-linux-gnu/openmpi/include/
 
 sinclude $(GENERAL_RULES)/mplib$(WM_MPLIB)
 sinclude $(RULES)/mplib$(WM_MPLIB)
 
 H5FLAGS  = -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_BSD_SOURCE -fPIC
-H5INC    = -I$(HDF5_DIR)/include
-H5LIBS   = -L$(HDF5_DIR)/lib -lhdf5_hl -lhdf5 -fPIC -lz -ldl -lrt -lm \
-           -Wl,-rpath -Wl,$(HDF5_DIR)/lib
+H5INC    = -I$(HDF5_DIR)
+H5LIBS   = -L$(HDF5_LIB_DIR) -lhdf5_hl -lhdf5 -fPIC -lz -ldl -lrt -lm \
+           -Wl,-rpath -Wl,$(HDF5_LIB_DIR)
 
 EXE_INC = -DWRITE_SP \
     $(PFLAGS) $(PINC) \

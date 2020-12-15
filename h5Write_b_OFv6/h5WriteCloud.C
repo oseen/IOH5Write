@@ -82,7 +82,8 @@ void Foam::functionObjects::h5Write::cloudWrite()
         particleLabel = new label[myParticles];
         
         // Write original processor ID
-        if (findStrings(cloudAttribs_, "origProc"))
+        //if (findStrings(cloudAttribs_, "origProc"))
+        if (cloudAttribs_.found(wordRe("origProc")))
         {
             label i = 0;
             forAllIter(basicKinematicCloud, *q, pIter)
@@ -112,7 +113,8 @@ void Foam::functionObjects::h5Write::cloudWrite()
         }  
         
         // Write original ID
-        if (findStrings(cloudAttribs_, "origId"))
+        // if (findStrings(cloudAttribs_, "origId"))
+        if (cloudAttribs_.found(wordRe("origId")))
         {
             label i = 0;
             forAllIter(basicKinematicCloud, *q, pIter)
@@ -142,7 +144,8 @@ void Foam::functionObjects::h5Write::cloudWrite()
         } 
         
         // Write cell number
-        if (findStrings(cloudAttribs_, "cell"))
+        //if (findStrings(cloudAttribs_, "cell"))
+        if (cloudAttribs_.found(wordRe("cell")))
         {
             label i = 0;
             forAllIter(basicKinematicCloud, *q, pIter)
@@ -172,7 +175,8 @@ void Foam::functionObjects::h5Write::cloudWrite()
         }
         
         // Write current process ID
-        if (findStrings(cloudAttribs_, "currProc"))
+        //if (findStrings(cloudAttribs_, "currProc"))
+        if (cloudAttribs_.found(wordRe("currProc")))
         {
             label i = 0;
             forAllIter(basicKinematicCloud, *q, pIter)
@@ -210,7 +214,8 @@ void Foam::functionObjects::h5Write::cloudWrite()
         particleScalar1 = new ioScalar[myParticles];
         
         // Write density rho
-        if (findStrings(cloudAttribs_, "rho"))
+        //if (findStrings(cloudAttribs_, "rho"))
+        if (cloudAttribs_.found(wordRe("rho")))
         {
             label i = 0;
             forAllIter(basicKinematicCloud, *q, pIter)
@@ -240,7 +245,8 @@ void Foam::functionObjects::h5Write::cloudWrite()
         }
         
         // Write diameter d
-        if (findStrings(cloudAttribs_, "d"))
+        // if (findStrings(cloudAttribs_, "d"))
+        if (cloudAttribs_.found(wordRe("d")))
         {
             label i = 0;
             forAllIter(basicKinematicCloud, *q, pIter)
@@ -270,7 +276,8 @@ void Foam::functionObjects::h5Write::cloudWrite()
         }
         
         // Write age
-        if (findStrings(cloudAttribs_, "age"))
+        // if (findStrings(cloudAttribs_, "age"))
+        if (cloudAttribs_.found(wordRe("age")))
         {
             label i = 0;
             forAllIter(basicKinematicCloud, *q, pIter)
@@ -308,7 +315,8 @@ void Foam::functionObjects::h5Write::cloudWrite()
         particleScalar3 = new ioScalar[myParticles*3];
         
         // Write position
-        if (findStrings(cloudAttribs_, "position"))
+        // if (findStrings(cloudAttribs_, "position"))
+        if (cloudAttribs_.found(wordRe("position")))
         {
             label i = 0;
             forAllIter(basicKinematicCloud, *q, pIter)
@@ -340,7 +348,8 @@ void Foam::functionObjects::h5Write::cloudWrite()
         }
         
         // Write velocity U
-        if (findStrings(cloudAttribs_, "U"))
+        // if (findStrings(cloudAttribs_, "U"))
+        if (cloudAttribs_.found(wordRe("U")))
         {
             label i = 0;
             forAllIter(basicKinematicCloud, *q, pIter)
@@ -372,7 +381,8 @@ void Foam::functionObjects::h5Write::cloudWrite()
         }
         
         // Write slip velocity Us = U - Uc
-        if (findStrings(cloudAttribs_, "Us"))
+        // if (findStrings(cloudAttribs_, "Us"))
+        if (cloudAttribs_.found(wordRe("Us")))
         {
 
 	    Info << "CAUTION: Writing cloud attribute Us was commented out. This part of code must be debugged in h5WriteCloud.C" <<endl;
