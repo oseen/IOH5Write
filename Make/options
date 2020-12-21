@@ -1,7 +1,7 @@
 
-export HDF5_DIR=/usr/include/hdf5/openmpi
-export HDF5_LIB_DIR=/usr/lib/x86_64-linux-gnu/hdf5/openmpi
-export SYSTEMOPENMPI=/usr/lib/x86_64-linux-gnu/openmpi/include/
+export HDF5_DIR="/usr/include/hdf5/openmpi"
+export HDF5_LIB_DIR="/usr/lib/x86_64-linux-gnu/hdf5/openmpi"
+export SYSTEMOPENMPI="/usr/lib/x86_64-linux-gnu/openmpi/include"
 
 sinclude $(GENERAL_RULES)/mplib$(WM_MPLIB)
 sinclude $(RULES)/mplib$(WM_MPLIB)

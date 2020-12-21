@@ -37,7 +37,7 @@ Author
     h5data1
     {
         type           h5Write;
-        libs ("libIOh5Write_b_OFv6.so");
+        libs ("libIOh5Write.so");
 	...
 	suppressFieldDataWrite false;
 	objectNames     ( U p k nut );

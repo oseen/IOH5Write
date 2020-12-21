@@ -56,7 +56,7 @@ functions
         type                h5Write;
 
         // Where to load it from
-        functionObjectLibs  ( "libIOh5Write_b_OFv6.so" );
+        functionObjectLibs  ( "libIOh5Write.so" );
 
 	// bool to suppress internal field data writing (default = false --> internal field data is written)
 	suppressFieldDataWrite false;
