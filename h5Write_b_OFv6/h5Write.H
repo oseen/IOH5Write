@@ -175,6 +175,8 @@ class h5Write
         List<label> nPatchCells_; // nPatchCells_[patch] = number of patch-cells
         List<List<label>> nPatchCellsPerProc_; // nPatchCells_[proc][patch] = number of patch-cells per processor
 
+	List<label> nPatchFacePoints_; // sum of face points per patch
+	List<List<label>> nPatchFacePointsPerProc_; // sum of face points per patch per processor
 
 
     // Private Member Functions

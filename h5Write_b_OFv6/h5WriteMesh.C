@@ -41,12 +41,42 @@ void Foam::functionObjects::h5Write::meshWrite()
     // Find over all (global) number of patch faces per process
 
         nPatchCells_.setSize( patchNames_.size() ); // set size of List<label> nPatchCells_
+	nPatchFacePoints_.setSize( patchNames_.size() );
+	nPatchFacePointsPerProc_.setSize(Pstream::nProcs());
 
         forAll(patchNames_, patchI) //loop over all patches with iterator patchI
         {
                 label patchID = mesh_.boundaryMesh().findPatchID( patchNames_[patchI]  ); // get patchID from each patch
-                nPatchCells_[patchI] = mesh_.boundaryMesh()[patchID].size(); // fill list nPatchCells with nr. of patch cells for each patch
-        }
+	    if ( patchID >=0 )
+	    {
+		nPatchCells_[patchI] = mesh_.boundaryMesh()[patchID].size(); // fill list nPatchCells with nr. of patch cells for each patch
+
+		const fvPatch& myPatch = mesh_.boundary()[patchID]; // define patch
+
+		int myPatchFacePointsNumber = 0;
+
+		forAll(myPatch, faceI)
+		{
+		    const label& faceID = myPatch.start() + faceI;
+
+		    myPatchFacePointsNumber++; // shapeID of polygon, 3
+
+		    myPatchFacePointsNumber++; // polygon face points count
+
+		    myPatchFacePointsNumber += mesh_.faces()[faceID].size(); // for face points
+		}
+		nPatchFacePoints_[patchI] = myPatchFacePointsNumber;
+	    }
+	    else
+	    {
+		FatalErrorIn
+		    (
+		     "h5Write::meshWrite()"
+		    )   << "Unknown patch "
+		    << patchNames_[patchI] << endl
+		    << exit(FatalError);
+	    }
+	}
 
         // fill List<List<label>> nPatchCellsPerProc_ with List<label> nPatchCells_
         nPatchCellsPerProc_[Pstream::myProcNo()] = nPatchCells_; // fill nPatchCellsPerProc_ with nr. of patch cells for each patch for each proc
@@ -54,6 +84,14 @@ void Foam::functionObjects::h5Write::meshWrite()
         // share with all mpi processes
         Pstream::gatherList(nPatchCellsPerProc_);
         Pstream::scatterList(nPatchCellsPerProc_);
+
+	// fill List<List<label>> nPatchFacePointsPerProc_
+	// with List<label> nPatchFacePoints_;
+	nPatchFacePointsPerProc_[Pstream::myProcNo()] = nPatchFacePoints_;
+
+	// share with all mpi processes
+	Pstream::gatherList(nPatchFacePointsPerProc_);
+	Pstream::scatterList(nPatchFacePointsPerProc_);
 
     ////////////////////////////////////////////////////////////////////////////////
 
@@ -186,6 +224,7 @@ void Foam::functionObjects::h5Write::meshWriteCells()
 
     // Map shapes OpenFOAM->XDMF
     Map<label> shapeLookupIndex;
+    shapeLookupIndex.insert(unknownModel->index(), 16);
     shapeLookupIndex.insert(hexModel->index(), 9);
     shapeLookupIndex.insert(prismModel->index(), 8);
     shapeLookupIndex.insert(pyrModel->index(), 7);
@@ -193,33 +232,90 @@ void Foam::functionObjects::h5Write::meshWriteCells()
 
 
     const cellList& cells  = mesh_.cells();
+
+    const faceList& faces = mesh_.faces();
+
     const cellShapeList& shapes = mesh_.cellShapes();
 
+    int myDatasetSize = 0;
+
+    forAll(cells, cellId)
+    {
+	myDatasetSize += 1; // Store the type/shape of the cell
+
+	myDatasetSize += 1; // Store the number of faces for polyhedra cells,
+		            // or just skipped for non-polyhedra cells
+
+	const cell& c = cells[cellId];
+
+	// Get all faces of the cell
+        forAll(c, faceId)
+        {
+	    myDatasetSize += 1; // Store face points count
+
+	    const face& f = faces[c[faceId]];
+
+            myDatasetSize += f.size(); // Store all points
+        }
+    }
 
     // Find dataset length for this process and fill dataset in one operation
     // this will possible give a little overhead w.r.t. storage, but on a
     // hex-dominated mesh, this is OK.
     int j = 0;
-    int myDataset[9*cells.size()];
+    int myDataset[myDatasetSize];
     forAll(cells, cellId)
     {
+	const cell& c = cells[cellId];
         const cellShape& shape = shapes[cellId];
         label mapIndex = shape.model().index();
 
         // A registered primitive type
-        if (shapeLookupIndex.found(mapIndex))
-        {
-            label shapeId = shapeLookupIndex[mapIndex];
-            const labelList& vrtList = shapes[cellId];
+	if (shapeLookupIndex.found(mapIndex))
+	{
+	    label shapeId = shapeLookupIndex[mapIndex];
 
-            myDataset[j] = shapeId; j++;
-            forAll(vrtList, i)
-            {
+	    if (shapeId != 16) // shapeId !=16 for non-polyhedral cells
+	    {
+		myDataset[j] = shapeId; j++;
 
-                myDataset[j] = vrtList[i]; j++;
+		const labelList& vrtList = shapes[cellId];
 
-            }
-        }
+		forAll(vrtList, i)
+		{
+
+		    myDataset[j] = vrtList[i]; j++;
+
+		}
+	    }
+
+	    // For polyhedral cells
+	    else
+	    {
+		// Polyhedral cell type is 16
+		// see https://www.xdmf.org/index.php/XDMF_Model_and_Format
+		myDataset[j] = 16; j++;
+
+		myDataset[j] = c.size(); j++; // write number of faces
+
+		forAll(c, faceId)
+		{
+
+		    const face& f = faces[c[faceId]];
+
+		    myDataset[j] = f.size(); j++; // write number of points of face
+
+		    forAll(f, nodei)
+		    {
+			const label& nodeId = f[nodei];
+
+			myDataset[j] = nodeId; j++; // write each point
+		    }
+
+		}
+	    }
+
+	}
 
         // If the cell is not a basic type, exit with an error
         else
@@ -371,14 +467,17 @@ void Foam::functionObjects::h5Write::meshWritePatchFaces()
 
         int j = 0;
         // initialize plain array with number of faces for each patch on each proc * 5 ( shapeID + 4 points --> quadrilateral faces)
-        int myFaceDataset[5*nPatchCellsPerProc_[Pstream::myProcNo()][patchI]];
-        label shapeId = 5; // hard coded to test it with quadrilateral faces (XDMF --> quadrilateral=5)
+        int myFaceDataset[nPatchFacePointsPerProc_[Pstream::myProcNo()][patchI]];
+        label shapeId = 3; //treat every face as polygon
 
         forAll(myPatch,faceI) //loop over all faces of patch
         {
                 const label& faceID = myPatch.start() + faceI;
 
                 myFaceDataset[j] = shapeId; // first array component is shapeID, seperate nodes relating to a face with shapeID
+                j++;
+
+                myFaceDataset[j] = mesh_.faces()[faceID].size(); // second array component is number of points of the face
                 j++;
 
                 forAll(mesh_.faces()[faceID], nodei) //loop over all nodes of one face with faceID
@@ -415,13 +514,13 @@ void Foam::functionObjects::h5Write::meshWritePatchFaces()
 
                 // Set chunking, compression and other HDF5 dataset properties
                 plistDCreate = H5Pcreate(H5P_DATASET_CREATE);
-                dsetSetProps(1, sizeof(int), 5*nPatchCellsPerProc_[proc][patchI], plistDCreate); // 5* ( shapeID + 4 points --> quad faces)
+                dsetSetProps(1, sizeof(int), nPatchFacePointsPerProc_[proc][patchI], plistDCreate);
 
                 // Create dataspace for cell list
-                dimsf[0] = 5*nPatchCellsPerProc_[proc][patchI]; // 5* ( shapeID + 4 points --> quad faces)
+                dimsf[0] = nPatchFacePointsPerProc_[proc][patchI];
                 fileSpace = H5Screate_simple(1, dimsf, NULL);
 
-                // h5dump -H --> GROUP "MESH" { GROUP "0" { GROUP "inlet" { GROUP "processor0" { DATASET "FACES" { ... } }}}
+                // h5dump -H --> GROUP "MESH" { GROUP "0" { GROUP "inlet" { GROUP "processor0" { DATASET "FACES" { ... } }}}}
                 sprintf
                 (
                         datasetName,
