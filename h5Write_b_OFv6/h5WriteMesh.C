@@ -624,33 +624,33 @@ void Foam::functionObjects::h5Write::meshWritePatchFaces()
 ////////////////////////////////////////////////////////////////////
 
 
-const Foam::cellModel* Foam::functionObjects::h5Write::unknownModel = Foam::cellModel::ptr
+const Foam::cellModel* Foam::functionObjects::h5Write::unknownModel = Foam::cellModeller::lookup
 (
     "unknown"
 );
 
 
-const Foam::cellModel* Foam::functionObjects::h5Write::tetModel = Foam::cellModel::
-ptr
+const Foam::cellModel* Foam::functionObjects::h5Write::tetModel = Foam::cellModeller::
+lookup
 (
     "tet"
 );
 
 
-const Foam::cellModel* Foam::functionObjects::h5Write::pyrModel = Foam::cellModel::
-ptr
+const Foam::cellModel* Foam::functionObjects::h5Write::pyrModel = Foam::cellModeller::
+lookup
 (
     "pyr"
 );
 
 
-const Foam::cellModel* Foam::functionObjects::h5Write::prismModel = Foam::cellModel::ptr
+const Foam::cellModel* Foam::functionObjects::h5Write::prismModel = Foam::cellModeller::lookup
 (
     "prism"
 );
 
 
-const Foam::cellModel* Foam::functionObjects::h5Write::hexModel = Foam::cellModel::ptr
+const Foam::cellModel* Foam::functionObjects::h5Write::hexModel = Foam::cellModeller::lookup
 (
     "hex"
 );
